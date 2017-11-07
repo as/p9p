@@ -37,16 +37,7 @@ func (c *Conn) ReadMsg() (msg Msg, err error) {
 	return msg, err
 }
 func (c *Conn) WriteMsg(msg Msg) (err error) {
-	return msg, err
-}
-
-func (c *Conn) readN(n int) (err error) {
-	c.ensure(n)
-	m, err := io.CopyN(c.buf, c.fd, int64(n))
-	if int64(n) != m {
-		return ErrShortRead
-	}
-	return err
+	return msg.WriteBinary(c.fd)
 }
 
 func (c *Conn) readHDR() (err error) {
@@ -57,6 +48,15 @@ func (c *Conn) readHDR() (err error) {
 		return ErrShortRead
 	}
 	return (&c.lastHDR).ReadBinary(c.buf)
+}
+
+func (c *Conn) readN(n int) (err error) {
+	c.ensure(n)
+	m, err := io.CopyN(c.buf, c.fd, int64(n))
+	if int64(n) != m {
+		return ErrShortRead
+	}
+	return err
 }
 
 func (c *Conn) ensure(n int) {
