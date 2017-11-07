@@ -50,3 +50,4 @@ const (
 //wire9 Rstat size[4] msg[1] tag[2] stat[size-4-1-2]
 //wire9 Twstat size[4] msg[1] tag[2] fid[4] stat[size-4-1-2]
 //wire9 Rwstat size[4] msg[1] tag[2]
+ECHO is on.
