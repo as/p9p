@@ -29,14 +29,14 @@ func Open(fd io.ReadWriteCloser, opts *Opts) (conn *Conn, err error) {
 	return conn, nil
 }
 
-func (c *Conn) ReadMsg() (msg *Msg, err error) {
+func (c *Conn) ReadMsg() (msg Msg, err error) {
 	err = c.readHDR()
 	if err != nil {
 		return nil, err
 	}
 	return msg, err
 }
-func (c *Conn) WriteMsg() (msg Msg, err error) {
+func (c *Conn) WriteMsg(msg Msg) (err error) {
 	return msg, err
 }
 
