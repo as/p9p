@@ -7,6 +7,11 @@ import (
 	"net"
 )
 
+const (
+	Version = "9p2000"
+	MaxMsg  = 65536
+)
+
 type Kind byte
 
 const (
@@ -40,11 +45,6 @@ func str(in string) s {
 //wire9 Tversion size[4] msg[1] tag[2] msize[4] version[,s]
 //wire9 Rversion size[4] msg[1] tag[2] msize[4] version[,s]
 
-const (
-	Version = "9p2000"
-	MaxMsg  = 65536
-)
-
 func NewBio(conn net.Conn) *Conn {
 	return &Conn{
 		ReadWriter: bufio.NewReadWriter(
@@ -77,16 +77,6 @@ type Conn struct {
 	state   State
 }
 
-func (c *Conn) Version() (string, error) {
-	if c.state != StEstablished {
-		return "", ErrNoConn
-	}
-	if c.version == "" {
-		return "", ErrBadVersion
-	}
-	return c.version, nil
-}
-
 func Accept(fd net.Listener) (*Conn, error) {
 	conn, err := fd.Accept()
 	if err != nil {
@@ -95,7 +85,6 @@ func Accept(fd net.Listener) (*Conn, error) {
 	c := NewBio(conn)
 
 	tv := Tversion{}
-
 	if err = tv.ReadBinary(c); err != nil {
 		panic(err)
 	}
@@ -119,40 +108,7 @@ func Accept(fd net.Listener) (*Conn, error) {
 	return c, c.Flush()
 }
 
-func Dial(netw string, addr string) (*Conn, error) {
-	conn, err := net.Dial(netw, addr)
-	if err != nil {
-		return nil, err
-	}
-
-	bio, err := Open(conn)
-	if err != nil {
-		conn.Close()
-	}
-
-	return bio, err
-}
-
-func open(c *Conn, tv *Tversion) (*Rversion, error) {
-	tv.size = uint32(4 + 1 + 2 + 4 + len(tv.version.data))
-
-	logf("open: sending %#v\n", tv)
-	if err := tv.WriteBinary(c); err != nil {
-		logf("open: err: %s\n", err)
-	}
-
-	if err := c.Flush(); err != nil {
-		return nil, err
-	}
-
-	rv := Rversion{}
-	if err := rv.ReadBinary(c); err != nil {
-		return nil, err
-	}
-	logf("open: recv %#v\n", rv)
-	return &rv, nil
-}
-
+// Open opens a new 9p connection on the given conn
 func Open(conn net.Conn) (*Conn, error) {
 	c := NewBio(conn)
 	rv, err := open(c, &Tversion{
@@ -169,6 +125,41 @@ func Open(conn net.Conn) (*Conn, error) {
 	c.version = string(rv.version.data)
 
 	return c, err
+}
+
+func open(c *Conn, tv *Tversion) (*Rversion, error) {
+	tv.size = uint32(4 + 1 + 2 + 4 + len(tv.version.data))
+
+	logf("open: sending %#v\n", tv)
+	if err := tv.WriteBinary(c); err != nil {
+		logf("open: err: %s\n", err)
+		return nil, err
+	}
+
+	if err := c.Flush(); err != nil {
+		return nil, err
+	}
+
+	rv := Rversion{}
+	if err := rv.ReadBinary(c); err != nil {
+		return nil, err
+	}
+	logf("open: recv %#v\n", rv)
+	return &rv, nil
+}
+
+func Dial(netw string, addr string) (*Conn, error) {
+	conn, err := net.Dial(netw, addr)
+	if err != nil {
+		return nil, err
+	}
+
+	bio, err := Open(conn)
+	if err != nil {
+		conn.Close()
+	}
+
+	return bio, err
 }
 
 //wire9 Tauth size[4] msg[1] tag[2] afid[4] uname[,s] aname[,s]

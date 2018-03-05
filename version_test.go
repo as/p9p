@@ -40,8 +40,6 @@ func TestConn(t *testing.T) {
 }
 func TestVersion(t *testing.T) {
 	c, s := testConn(t)
-	defer c.Close()
-	defer s.Close()
 
 	cv, err := c.Version()
 	if err != nil {
