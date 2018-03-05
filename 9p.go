@@ -78,14 +78,14 @@ type Conn struct {
 	state   State
 }
 
-func (b *Conn) Version() (string, error) {
-	if b.state != StEstablished {
+func (c *Conn) Version() (string, error) {
+	if c.state != StEstablished {
 		return "", ErrNoConn
 	}
-	if b.version == "" {
+	if c.version == "" {
 		return "", ErrBadVersion
 	}
-	return b.version, nil
+	return c.version, nil
 }
 
 func Accept(fd net.Listener) (*Conn, error) {
@@ -93,11 +93,11 @@ func Accept(fd net.Listener) (*Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	bio := NewBio(conn)
+	c := NewBio(conn)
 
 	tv := Tversion{}
 
-	if err = tv.ReadBinary(bio); err != nil {
+	if err = tv.ReadBinary(c); err != nil {
 		panic(err)
 	}
 
@@ -110,14 +110,14 @@ func Accept(fd net.Listener) (*Conn, error) {
 		msize:   MaxMsg,
 		version: str(Version),
 	}
-	if err := rv.WriteBinary(bio); err != nil {
+	if err := rv.WriteBinary(c); err != nil {
 		log.Printf("open: err: %s\n", err)
 	}
 
-	bio.state = StEstablished
-	bio.version = string(rv.version.data)
+	c.state = StEstablished
+	c.version = string(rv.version.data)
 
-	return bio, bio.Flush()
+	return c, c.Flush()
 }
 
 func Dial(netw string, addr string) (*Conn, error) {
@@ -134,29 +134,42 @@ func Dial(netw string, addr string) (*Conn, error) {
 	return bio, err
 }
 
-func Open(conn net.Conn) (*Conn, error) {
-	bio := NewBio(conn)
+func open(c *Conn, tv *Tversion) (*Rversion, error) {
+	tv.size = uint32(4 + 1 + 2 + 4 + len(tv.version.data))
 
-	tv := Tversion{
-		size:    uint32(4 + 1 + 2 + 4 + len(Version)),
+	log.Printf("open: sending %#v\n", tv)
+	if err := tv.WriteBinary(c); err != nil {
+		log.Printf("open: err: %s\n", err)
+	}
+
+	if err := c.Flush(); err != nil {
+		return nil, err
+	}
+
+	rv := Rversion{}
+	if err := rv.ReadBinary(c); err != nil {
+		return nil, err
+	}
+	log.Printf("open: recv %#v\n", rv)
+	return &rv, nil
+}
+
+func Open(conn net.Conn) (*Conn, error) {
+	c := NewBio(conn)
+	rv, err := open(c, &Tversion{
 		msg:     KTversion,
 		tag:     NOTAG,
 		msize:   MaxMsg,
 		version: str(Version),
-	}
-	log.Printf("open: sending %#v\n", tv)
-	if err := tv.WriteBinary(bio); err != nil {
-		log.Printf("open: err: %s\n", err)
-	}
-	err := bio.Flush()
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	bio.state = StEstablished
-	bio.version = string(tv.version.data)
+	c.state = StEstablished
+	c.version = string(rv.version.data)
 
-	return bio, err
+	return c, err
 }
 
 //wire9 Tauth size[4] msg[1] tag[2] afid[4] uname[,s] aname[,s]
