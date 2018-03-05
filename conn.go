@@ -1,12 +1,12 @@
 package p9p
 
+/*
 import (
 	"bytes"
 	"errors"
 	"io"
 	"time"
 )
-
 var (
 	ErrShortRead = errors.New("short read")
 )
@@ -68,3 +68,4 @@ func (c *Conn) ensure(n int) {
 func round(n int) int {
 	return (n + 256) &^ (256)
 }
+*/
