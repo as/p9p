@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func testConn(t *testing.T) (client, server *Bio) {
+func testConn(t *testing.T) (client, server *Conn) {
 	t.Helper()
 	fd, err := net.Listen("tcp", "localhost:0")
 	if err != nil {
@@ -32,7 +32,7 @@ func testConn(t *testing.T) (client, server *Bio) {
 		t.Fatal(err)
 		return nil, nil
 	}
-	return bio0, rt.(*Bio)
+	return bio0, rt.(*Conn)
 }
 
 func TestConn(t *testing.T) {

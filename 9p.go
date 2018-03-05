@@ -46,8 +46,8 @@ const (
 	MaxMsg  = 65536
 )
 
-func NewBio(conn net.Conn) *Bio {
-	return &Bio{
+func NewBio(conn net.Conn) *Conn {
+	return &Conn{
 		ReadWriter: bufio.NewReadWriter(
 			bufio.NewReaderSize(conn, MaxMsg),
 			bufio.NewWriterSize(conn, MaxMsg),
@@ -70,7 +70,7 @@ const (
 	StError
 )
 
-type Bio struct {
+type Conn struct {
 	*bufio.ReadWriter
 	rwc     io.ReadWriteCloser
 	err     error
@@ -78,7 +78,7 @@ type Bio struct {
 	state   State
 }
 
-func (b *Bio) Version() (string, error) {
+func (b *Conn) Version() (string, error) {
 	if b.state != StEstablished {
 		return "", ErrNoConn
 	}
@@ -88,7 +88,7 @@ func (b *Bio) Version() (string, error) {
 	return b.version, nil
 }
 
-func Accept(fd net.Listener) (*Bio, error) {
+func Accept(fd net.Listener) (*Conn, error) {
 	conn, err := fd.Accept()
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func Accept(fd net.Listener) (*Bio, error) {
 	return bio, bio.Flush()
 }
 
-func Dial(netw string, addr string) (*Bio, error) {
+func Dial(netw string, addr string) (*Conn, error) {
 	conn, err := net.Dial(netw, addr)
 	if err != nil {
 		return nil, err
@@ -134,7 +134,7 @@ func Dial(netw string, addr string) (*Bio, error) {
 	return bio, err
 }
 
-func Open(conn net.Conn) (*Bio, error) {
+func Open(conn net.Conn) (*Conn, error) {
 	bio := NewBio(conn)
 
 	tv := Tversion{
