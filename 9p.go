@@ -45,7 +45,7 @@ func str(in string) s {
 //wire9 Tversion size[4] msg[1] tag[2] msize[4] version[,s]
 //wire9 Rversion size[4] msg[1] tag[2] msize[4] version[,s]
 
-func NewBio(conn net.Conn) *Conn {
+func newConn(conn net.Conn) *Conn {
 	return &Conn{
 		ReadWriter: bufio.NewReadWriter(
 			bufio.NewReaderSize(conn, MaxMsg),
@@ -82,13 +82,13 @@ func Accept(fd net.Listener) (c *Conn, err error) {
 	if err != nil {
 		return nil, err
 	}
-	defer func(){
-		if err != nil{
+	defer func() {
+		if err != nil {
 			conn.Close()
 		}
 	}()
-	
-	c = NewBio(conn)
+
+	c = newConn(conn)
 	return c, negotiateServer(c, &Tversion{
 		msg:     KTversion,
 		tag:     NOTAG,
@@ -114,7 +114,7 @@ func Dial(netw string, addr string) (*Conn, error) {
 // NewConn opens a new 9p connection from an existing
 // conn.
 func NewConn(conn net.Conn) (*Conn, error) {
-	c := NewBio(conn)
+	c := newConn(conn)
 	rv, err := negotiateClient(c, &Tversion{
 		msg:     KTversion,
 		tag:     NOTAG,

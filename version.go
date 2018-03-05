@@ -40,7 +40,7 @@ func negotiateClient(c *Conn, tv *Tversion) (*Rversion, error) {
 	return &rv, nil
 }
 
-func negotiateServer(c *Conn, tv *Tversion) (error) {
+func negotiateServer(c *Conn, tv *Tversion) error {
 	rv := Rversion{}
 	if err := rv.ReadBinary(c); err != nil {
 		return err
