@@ -4,7 +4,7 @@ var(
 	ErrVersion = errors.New("mismatched version")
 	ErrBadMsgRx = errors.New("bad msg reply")
 )
-	
+/*
 
 type Opts struct {
 	Msize   uint32
@@ -45,3 +45,4 @@ func (c *Conn) Version(tag int, msize int, v string) (*Rversion, error){
 //	}
 	panic("not finished")
 }
+*/
