@@ -77,41 +77,45 @@ type Conn struct {
 	state   State
 }
 
-func Accept(fd net.Listener) (*Conn, error) {
+func Accept(fd net.Listener) (c *Conn, err error) {
 	conn, err := fd.Accept()
 	if err != nil {
 		return nil, err
 	}
-	c := NewBio(conn)
-
-	tv := Tversion{}
-	if err = tv.ReadBinary(c); err != nil {
-		panic(err)
-	}
-
-	logf("accept: got %#v\n", tv)
-
-	rv := Rversion{
-		size:    uint32(4 + 1 + 2 + 4 + len(Version)),
+	defer func(){
+		if err != nil{
+			conn.Close()
+		}
+	}()
+	
+	c = NewBio(conn)
+	return c, negotiateServer(c, &Tversion{
 		msg:     KTversion,
 		tag:     NOTAG,
 		msize:   MaxMsg,
 		version: str(Version),
-	}
-	if err := rv.WriteBinary(c); err != nil {
-		logf("open: err: %s\n", err)
-	}
-
-	c.state = StEstablished
-	c.version = string(rv.version.data)
-
-	return c, c.Flush()
+	})
 }
 
-// Open opens a new 9p connection on the given conn
-func Open(conn net.Conn) (*Conn, error) {
+func Dial(netw string, addr string) (*Conn, error) {
+	conn, err := net.Dial(netw, addr)
+	if err != nil {
+		return nil, err
+	}
+
+	bio, err := NewConn(conn)
+	if err != nil {
+		conn.Close()
+	}
+
+	return bio, err
+}
+
+// NewConn opens a new 9p connection from an existing
+// conn.
+func NewConn(conn net.Conn) (*Conn, error) {
 	c := NewBio(conn)
-	rv, err := open(c, &Tversion{
+	rv, err := negotiateClient(c, &Tversion{
 		msg:     KTversion,
 		tag:     NOTAG,
 		msize:   MaxMsg,
@@ -125,41 +129,6 @@ func Open(conn net.Conn) (*Conn, error) {
 	c.version = string(rv.version.data)
 
 	return c, err
-}
-
-func open(c *Conn, tv *Tversion) (*Rversion, error) {
-	tv.size = uint32(4 + 1 + 2 + 4 + len(tv.version.data))
-
-	logf("open: sending %#v\n", tv)
-	if err := tv.WriteBinary(c); err != nil {
-		logf("open: err: %s\n", err)
-		return nil, err
-	}
-
-	if err := c.Flush(); err != nil {
-		return nil, err
-	}
-
-	rv := Rversion{}
-	if err := rv.ReadBinary(c); err != nil {
-		return nil, err
-	}
-	logf("open: recv %#v\n", rv)
-	return &rv, nil
-}
-
-func Dial(netw string, addr string) (*Conn, error) {
-	conn, err := net.Dial(netw, addr)
-	if err != nil {
-		return nil, err
-	}
-
-	bio, err := Open(conn)
-	if err != nil {
-		conn.Close()
-	}
-
-	return bio, err
 }
 
 //wire9 Tauth size[4] msg[1] tag[2] afid[4] uname[,s] aname[,s]
