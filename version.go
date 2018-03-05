@@ -1,9 +1,12 @@
 package p9p
+
 import "errors"
-var(
-	ErrVersion = errors.New("mismatched version")
+
+var (
+	ErrVersion  = errors.New("mismatched version")
 	ErrBadMsgRx = errors.New("bad msg reply")
 )
+
 /*
 
 type Opts struct {
@@ -26,12 +29,12 @@ func (c *Conn) Version(tag int, msize int, v string) (*Rversion, error){
 	tx.version.n = uint16(len(v))
 	tx.version.data = []byte(v)
 	tx.size = uint32(4+1+2+4+tx.version.n)
-	
+
 	err := tx.WriteBinary(c.fd)
 	if err != nil{
 		return nil, err
 	}
-	
+
 	rx := &Rversion{}
 	err = rx.ReadBinary(c.fd)
 	if err != nil{

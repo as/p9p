@@ -56,7 +56,7 @@ func NewBio(conn net.Conn) *Bio {
 }
 
 var (
-	ErrNoConn = errors.New("no connection")
+	ErrNoConn     = errors.New("no connection")
 	ErrBadVersion = errors.New("bad version")
 )
 
@@ -82,7 +82,7 @@ func (b *Bio) Version() (string, error) {
 	if b.state != StEstablished {
 		return "", ErrNoConn
 	}
-	if b.version == ""{
+	if b.version == "" {
 		return "", ErrBadVersion
 	}
 	return b.version, nil
@@ -116,7 +116,7 @@ func Accept(fd net.Listener) (*Bio, error) {
 
 	bio.state = StEstablished
 	bio.version = string(rv.version.data)
-	
+
 	return bio, bio.Flush()
 }
 
@@ -149,10 +149,10 @@ func Open(conn net.Conn) (*Bio, error) {
 		log.Printf("open: err: %s\n", err)
 	}
 	err := bio.Flush()
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
-	
+
 	bio.state = StEstablished
 	bio.version = string(tv.version.data)
 

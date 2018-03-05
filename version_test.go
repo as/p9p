@@ -15,7 +15,7 @@ func testConn(t *testing.T) (client, server *Bio) {
 	go func() {
 		bio, err := Accept(fd)
 		if err != nil {
-			wait <-err
+			wait <- err
 			return
 		}
 		wait <- bio
@@ -25,9 +25,9 @@ func testConn(t *testing.T) (client, server *Bio) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	
+
 	rt := <-wait
-	switch rt.(type){
+	switch rt.(type) {
 	case error:
 		t.Fatal(err)
 		return nil, nil
@@ -35,21 +35,21 @@ func testConn(t *testing.T) (client, server *Bio) {
 	return bio0, rt.(*Bio)
 }
 
-func TestConn(t *testing.T){
+func TestConn(t *testing.T) {
 	testConn(t)
 }
-func TestVersion(t *testing.T){
+func TestVersion(t *testing.T) {
 	c, s := testConn(t)
 	cv, err := c.Version()
-	if err != nil{
+	if err != nil {
 		t.Fatalf("client version error: %s", err)
 	}
 	sv, err := s.Version()
-	if err != nil{
+	if err != nil {
 		t.Fatalf("server version error: %s", err)
 	}
-	if cv != sv{
+	if cv != sv {
 		t.Fatalf("client and server differ: %q vs %q\n", cv, sv)
 	}
-	
+
 }
