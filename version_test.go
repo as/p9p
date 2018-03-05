@@ -40,14 +40,19 @@ func TestConn(t *testing.T) {
 }
 func TestVersion(t *testing.T) {
 	c, s := testConn(t)
+	defer c.Close()
+	defer s.Close()
+
 	cv, err := c.Version()
 	if err != nil {
 		t.Fatalf("client version error: %s", err)
 	}
+
 	sv, err := s.Version()
 	if err != nil {
 		t.Fatalf("server version error: %s", err)
 	}
+
 	if cv != sv {
 		t.Fatalf("client and server differ: %q vs %q\n", cv, sv)
 	}

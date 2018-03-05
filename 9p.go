@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"io"
-	"log"
 	"net"
 )
 
@@ -101,7 +100,7 @@ func Accept(fd net.Listener) (*Conn, error) {
 		panic(err)
 	}
 
-	log.Printf("accept: got %#v\n", tv)
+	logf("accept: got %#v\n", tv)
 
 	rv := Rversion{
 		size:    uint32(4 + 1 + 2 + 4 + len(Version)),
@@ -111,7 +110,7 @@ func Accept(fd net.Listener) (*Conn, error) {
 		version: str(Version),
 	}
 	if err := rv.WriteBinary(c); err != nil {
-		log.Printf("open: err: %s\n", err)
+		logf("open: err: %s\n", err)
 	}
 
 	c.state = StEstablished
@@ -137,9 +136,9 @@ func Dial(netw string, addr string) (*Conn, error) {
 func open(c *Conn, tv *Tversion) (*Rversion, error) {
 	tv.size = uint32(4 + 1 + 2 + 4 + len(tv.version.data))
 
-	log.Printf("open: sending %#v\n", tv)
+	logf("open: sending %#v\n", tv)
 	if err := tv.WriteBinary(c); err != nil {
-		log.Printf("open: err: %s\n", err)
+		logf("open: err: %s\n", err)
 	}
 
 	if err := c.Flush(); err != nil {
@@ -150,7 +149,7 @@ func open(c *Conn, tv *Tversion) (*Rversion, error) {
 	if err := rv.ReadBinary(c); err != nil {
 		return nil, err
 	}
-	log.Printf("open: recv %#v\n", rv)
+	logf("open: recv %#v\n", rv)
 	return &rv, nil
 }
 
