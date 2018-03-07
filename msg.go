@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	ErrWrongMsg  = errors.New("wrong message")
+	ErrWrongMsg = errors.New("wrong message")
 )
 
 type Header struct {
@@ -84,6 +84,13 @@ func (c *Conn) write(p []byte) bool {
 
 	_, err := c.Write(p)
 	return err == nil
+}
+
+func (c *Conn) String() string {
+	if len(c.tmp) < 4 {
+		return ""
+	}
+	return string(c.tmp)
 }
 
 func (c *Conn) readstring() bool {

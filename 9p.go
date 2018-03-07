@@ -72,6 +72,7 @@ const (
 type Conn struct {
 	*bufio.ReadWriter
 	rwc     io.ReadWriteCloser
+	tmp     []byte
 	err     error
 	version string
 	state   State
