@@ -4,7 +4,7 @@ import (
 	"log"
 )
 
-var debug = 0
+var debug = 1
 var logf = log.Printf
 
 func init() {

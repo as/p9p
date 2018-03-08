@@ -20,7 +20,7 @@ func (c *Conn) Version() (string, error) {
 }
 
 func negotiateClient(c *Conn, tv *Tversion) (*Rversion, error) {
-	tv.size = uint32(4 + 1 + 2 + 4 + len(tv.version.data))
+	tv.size = uint32(4 + 1 + 2 + 4 + 2 + len(tv.version.data))
 
 	logf("open: sending %#v\n", tv)
 	if err := tv.WriteBinary(c); err != nil {
@@ -57,7 +57,7 @@ func negotiateServer(c *Conn, tv *Tversion) error {
 		return ErrBadIOSize
 	}
 
-	tv.size = uint32(4 + 1 + 2 + 4 + len(tv.version.data))
+	tv.size = uint32(4 + 1 + 2 + 4 + 2 + len(tv.version.data))
 	if err := tv.WriteBinary(c); err != nil {
 		logf("open: err: %s\n", err)
 		return err

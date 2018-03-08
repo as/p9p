@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	Version = "9p2000"
-	MaxMsg  = 65536
+	Version = "9P2000"
+	MaxMsg  = 65535
 )
 
 type Kind byte
