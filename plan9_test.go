@@ -60,7 +60,7 @@ func TestPlan9Version(t *testing.T) {
 	t.Logf("qid is %#v\n", qid)
 }
 
-func TestPlan9Walk(t *testing.T) {
+func TestPlan9WalkReadNdb(t *testing.T) {
 	ckHasPlan9(t)
 	conn, err := Dial("tcp", realPlan9)
 	if err != nil {
@@ -77,8 +77,19 @@ func TestPlan9Walk(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("qid is %#v\n", qid)
-	q, err := conn.Walk(1, 2, "today")
+	q, err := conn.Walk(1, 2, "/", "lib", "ndb", "local")
 	t.Logf("quids, err  %v %v\n", q, err)
+	if err != nil {
+		t.Fatal(err)
+	}
+	qid, iounit, err := conn.Open(2, 0)
+	t.Logf("qid, iounit, err %v %v %v\n", qid, iounit, err)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := make([]byte, iounit)
+	n, err := conn.ReadFid(2, 0, p)
+	t.Logf("n, err, p %v %v %v\n", n, err, p)
 	if err != nil {
 		t.Fatal(err)
 	}
