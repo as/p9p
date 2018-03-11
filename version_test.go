@@ -92,7 +92,6 @@ func ckHasPlan9(t *testing.T) {
 
 }
 
-
 // The server should run the equivalent of
 //	aux/listen1 -t -v tcp!*!808 exportfs -r /
 //
@@ -103,8 +102,8 @@ func TestVersionPlan9(t *testing.T) {
 		t.Fatal(err)
 	}
 	max, version, err := conn.Ver()
-	max=max
-	version=version
+	max = max
+	version = version
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,5 +111,5 @@ func TestVersionPlan9(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	
+
 }

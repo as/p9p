@@ -14,7 +14,7 @@ const (
 type Kind byte
 
 const (
-	KTversion, KRversion  Kind = iota + 100, iota + 101
+	KTversion, KRversion Kind = iota + 100, iota + 101
 	KTauth, KRauth
 	KTattach, KRattach
 	KTerror, KRerror
@@ -61,7 +61,7 @@ const (
 )
 
 type Conn struct {
-	txout chan msg
+	txout   chan msg
 	netconn net.Conn
 	xxx     *bufio.ReadWriter
 	err     error
@@ -124,9 +124,9 @@ func Dial(netw string, addr string) (c *Conn, err error) {
 // NewConn opens a new 9p connection from an existing
 // conn.
 func NewConn(conn net.Conn) (c *Conn) {
-	defer func(){ go c.run() }()
+	defer func() { go c.run() }()
 	return &Conn{
-		txout: make(chan msg),
+		txout:   make(chan msg),
 		netconn: conn,
 		xxx: bufio.NewReadWriter(
 			bufio.NewReaderSize(conn, MaxMsg),

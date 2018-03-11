@@ -54,7 +54,7 @@ func (c *Msg) writeHeader(kind Kind, tag uint16) bool {
 	}{kind, uint16(tag)})
 }
 
-func (c *Msg) self() bool{
+func (c *Msg) self() bool {
 	c.src = bytes.NewReader(c.Buffer.Bytes())
 	c.Buffer = bytes.Buffer{}
 	return true
@@ -66,13 +66,13 @@ func (c *Msg) Transmit(w io.Writer) error {
 		return c.err
 	}
 	_, c.err = c.Buffer.WriteTo(w)
-	if c.err != nil{
+	if c.err != nil {
 		return c.err
 	}
-	type Flusher interface{
+	type Flusher interface {
 		Flush() error
 	}
-	if f, ok := w.(Flusher); ok{
+	if f, ok := w.(Flusher); ok {
 		c.err = f.Flush()
 	}
 	return c.err
