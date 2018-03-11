@@ -63,7 +63,7 @@ const (
 type Conn struct {
 	txout   chan msg
 	netconn net.Conn
-	xxx     *bufio.ReadWriter
+	bio     *bufio.ReadWriter
 	err     error
 	version string
 	state   State
@@ -71,16 +71,16 @@ type Conn struct {
 
 func (c *Conn) Read(p []byte) (n int, err error) {
 	defer func() { logf("called conn.Read, result n=%d, err=%s", n, err) }()
-	return c.xxx.Read(p)
+	return c.bio.Read(p)
 }
 
 func (c *Conn) Write(p []byte) (n int, err error) {
 	defer func() { logf("called conn.Write, result n=%d, err=%s", n, err) }()
-	return c.xxx.Write(p)
+	return c.bio.Write(p)
 }
 func (c *Conn) Flush() (err error) {
 	defer func() { logf("called conn.Flush, result err=%s", err) }()
-	return c.xxx.Flush()
+	return c.bio.Flush()
 }
 
 func (c *Conn) Close() (err error) {
@@ -128,7 +128,7 @@ func NewConn(conn net.Conn) (c *Conn) {
 	return &Conn{
 		txout:   make(chan msg),
 		netconn: conn,
-		xxx: bufio.NewReadWriter(
+		bio: bufio.NewReadWriter(
 			bufio.NewReaderSize(conn, MaxMsg),
 			bufio.NewWriterSize(conn, MaxMsg),
 		),
