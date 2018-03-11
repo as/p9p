@@ -1,7 +1,5 @@
 package p9p
 
-import "fmt"
-
 type entry struct {
 	tag    uint16
 	expect Kind
@@ -25,7 +23,7 @@ func (c *Conn) schedule(m *Msg) (ok bool) {
 	if m0.Header.Kind == KRerror {
 		m0.self()
 		m0.readstring()
-		m0.err = fmt.Errorf("9p: %s\n", m0.Buffer.Bytes())
+		m0.err = ProtocolError{string(m0.Buffer.Bytes())}
 	}
 	if m0.err == nil {
 		m0.self()

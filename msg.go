@@ -8,14 +8,6 @@ import (
 	"io"
 )
 
-type ProtocolError struct {
-	msg string
-}
-
-func (e ProtocolError) Error() string {
-	return fmt.Sprintf("9perror: %q", e.msg)
-}
-
 var (
 	ErrWrongMsg = errors.New("wrong message")
 )
