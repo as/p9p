@@ -8,21 +8,36 @@ import (
 type Kind byte
 
 const (
-	KTversion, KRversion Kind = iota + 100, iota + 101
-	KTauth, KRauth
-	KTattach, KRattach
-	KTerror, KRerror
-	KTflush, KRflush
-	KTwalk, KRwalk
-	KTopen, KRopen
-	KTcreate, KRcreate
-	KTread, KRread
-	KTwrite, KRwrite
-	KTclunk, KRclunk
-	KTremove, KRremove
-	KTstat, KRstat
-	KTwstat, KRwstat
+	KTversion Kind = iota + 100
+	KRversion
+	KTauth
+	KRauth
+	KTattach
+	KRattach
+	KTerror
+	KRerror
+	KTflush
+	KRflush
+	KTwalk
+	KRwalk
+	KTopen
+	KRopen
+	KTcreate
+	KRcreate
+	KTread
+	KRread
+	KTwrite
+	KRwrite
+	KTclunk
+	KRclunk
+	KTremove
+	KRremove
+	KTstat
+	KRstat
+	KTwstat
+	KRwstat
 )
+
 const NOTAG = ^uint16(0)
 
 func str(in string) s {

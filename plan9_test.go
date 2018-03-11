@@ -41,23 +41,39 @@ func ckHasPlan9(t *testing.T) {
 // The server should run the equivalent of
 //	aux/listen1 -t -v tcp!*!808 exportfs -r /
 //
-func TestVersionPlan9(t *testing.T) {
+func TestPlan9Version(t *testing.T) {
 	ckHasPlan9(t)
 	conn, err := Dial("tcp", realPlan9)
 	if err != nil {
 		t.Fatal(err)
 	}
-	for i := 0; i < 2; i++ {
-		max, version, err := conn.Ver()
-		max = max
-		version = version
-		if err != nil {
-			t.Fatal(err)
-		}
+	max, version, err := conn.Ver()
+	max = max
+	version = version
+	if err != nil {
+		t.Fatal(err)
 	}
 	err = conn.Attach(1, 2, "/root", "xxxxxxxxx")
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestPlan9Error(t *testing.T) {
+	ckHasPlan9(t)
+	conn, err := Dial("tcp", realPlan9)
+	if err != nil {
+		t.Fatal(err)
+	}
+	iounit, version, err := conn.Ver()
+	t.Logf("got iounit=%d version=%q\n", iounit, version)
+	if err != nil {
+		t.Fatalf("error: %s\n", err)
+	}
+	err = conn.Error("because")
+	err = conn.Error("because")
+	err = conn.Error("because")
+	err = conn.Error("because")
+	t.Fatalf("error %s", err)
 
 }

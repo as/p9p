@@ -35,6 +35,8 @@ type Conn struct {
 	err     error
 	version string
 	state   State
+	exit    chan bool
+	done    chan struct{}
 }
 
 // NewConn opens a new 9p connection from an existing net.Conn.
@@ -42,10 +44,15 @@ func NewConn(conn net.Conn, conf *Config) (c *Conn) {
 	if conf == nil {
 		conf = &defaultConfig
 	}
-	defer func() { go c.run() }() // see run.go:/run/
+	defer func() {
+		c.exit <- true
+		go c.run() // see run.go:/run/
+	}()
 	return &Conn{
 		txout:   make(chan msg),
 		netconn: conn,
+		exit:    make(chan bool, 1),
+		done:    make(chan struct{}),
 		bio: bufio.NewReadWriter(
 			bufio.NewReaderSize(conn, conf.IOUnit),
 			bufio.NewWriterSize(conn, conf.IOUnit),
@@ -82,7 +89,16 @@ func (c *Conn) Flush() (err error) {
 	return c.bio.Flush()
 }
 
+func (c *Conn) close(cleanup bool) (err error) {
+	if cleanup {
+		close(c.exit)
+		close(c.done)
+		return c.netconn.Close()
+	}
+	return nil
+}
+
 func (c *Conn) Close() (err error) {
 	defer func() { logf("called conn.Close, result err=%s", err) }()
-	return c.netconn.Close()
+	return c.close(<-c.exit)
 }

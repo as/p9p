@@ -11,8 +11,8 @@ type msg struct {
 }
 
 func (c *Conn) schedule(m *Msg) (ok bool) {
-	logf("schedule: %#v\n", m)
-	defer func() { logf("de schedule: %#v\n", m) }()
+	logf("schedule: %s\n", m)
+	defer func() { logf("de schedule: %s\n", m) }()
 	if m.err != nil {
 		return false
 	}
@@ -32,20 +32,38 @@ func (c *Conn) run() {
 	inflight := make(map[uint16]chan *Msg)
 	tag := uint16(0xffff)
 	incoming := make(chan Msg)
+	fail := make(chan error)
+	defer close(fail)
+	defer close(c.txout)
+	defer c.close(<-c.exit)
 	go func() {
+		defer close(incoming)
 		for {
-			m := Msg{src: c}
-			if !m.readMsg(0) {
-				logf("readmsg: %s\n", m.err)
-				panic("TODO(as): handle readMsg failure")
+			select {
+			default:
+				m := Msg{src: c}
+				if !m.readMsg(0) {
+					logf("readmsg: %s\n", m.err)
+					fail <- m.err
+					continue
+				}
+				logf("readmsg loop: %s\n", m)
+				incoming <- m
+			case <-c.done:
+				return
 			}
-			logf("readmsg loop: %#v\n", m)
-			incoming <- m
 		}
 	}()
 	var err error
 	for {
 		select {
+		case <-c.done:
+			return
+		case err := <-fail:
+			if err != nil {
+				logf("conn: run: got fatal error: %s", err)
+			}
+			c.close(<-c.exit)
 		case m := <-c.txout:
 			if m.Kind == KTversion {
 				// According to the 9p man pages, a version message
@@ -58,8 +76,12 @@ func (c *Conn) run() {
 			if err != nil {
 				panic("TODO(as): handle transmit failure")
 			}
-			logf("txoutdone: %#v\n", m.Msg)
-			inflight[m.Tag] = m.reply
+			if m.Header.Kind != KTerror {
+				// If the client transmits an error (if that's even possible)
+				// there is no need to wait for a reply from the server
+				logf("txoutdone: %sn", m.Msg)
+				inflight[m.Tag] = m.reply
+			}
 			tag++
 		case m := <-incoming:
 			repl, ok := inflight[m.Tag]

@@ -33,6 +33,15 @@ type Msg struct {
 	err error
 }
 
+func (m *Msg) String() string {
+	return fmt.Sprintf("(%d %s %d) -> %q\n",
+		m.Header.Size,
+		m.Header.Kind,
+		m.Header.Tag,
+		m.Buffer.Bytes(),
+	)
+}
+
 func (c *Msg) writeMsg(kind Kind, p []byte) bool {
 	return c.writeHeader(kind) && c.write(p)
 }
@@ -41,7 +50,9 @@ func (c *Msg) writeHeader(kind Kind) bool {
 	if c.err != nil {
 		return false
 	}
+
 	c.Header.Kind = kind
+	logf("c.header=%s\n", kind)
 
 	return true
 }
@@ -107,13 +118,6 @@ func (c *Msg) write(p []byte) bool {
 
 	_, err := c.Buffer.Write(p)
 	return err == nil
-}
-
-func (c *Msg) String() string {
-	if c.Buffer.Len() < 4 {
-		return ""
-	}
-	return c.Buffer.String()
 }
 
 func (c *Msg) readstring() bool {
