@@ -44,22 +44,22 @@ func (c *Conn) Ver() (max uint32, version string, err error) {
 	return max, c.version, m.err
 }
 
-func (c *Conn) Attach(fid int, afid int, uname, aname string) error {
+func (c *Conn) Attach(fid int, afid int, uname, aname string) (q Qid, err error) {
 	m := &Msg{src: c}
 	m.writeHeader(KTattach)
-	m.writebinary(uint16(fid))
-	m.writebinary(uint16(afid))
+	m.writebinary(uint32(fid))
+	m.writebinary(uint32(afid))
 	m.writestring(uname)
 	m.writestring(aname)
 
 	if !c.schedule(m) {
-		return m.err
+		return q, m.err
 	}
 
 	logf("attach: %v %s %s", m.Header, m.String(), m.err)
-	m.read(13)
+	m.readbinary(&q)
 	logf("attach: %v %s %s", m.Header, m.String(), m.err)
-	return m.err
+	return q, m.err
 }
 
 func supported(ver string) bool {

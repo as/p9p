@@ -1,5 +1,7 @@
 package p9p
 
+import "fmt"
+
 type entry struct {
 	tag    uint16
 	expect Kind
@@ -20,11 +22,15 @@ func (c *Conn) schedule(m *Msg) (ok bool) {
 	reply := make(chan *Msg)
 	c.txout <- msg{m, reply}
 	m0 := <-reply
-
+	if m0.Header.Kind == KRerror {
+		m0.self()
+		m0.readstring()
+		m0.err = fmt.Errorf("9p: %s\n", m0.Buffer.Bytes())
+	}
 	if m0.err == nil {
 		m0.self()
-		*m = *m0
 	}
+	*m = *m0
 	return m0.err == nil
 }
 

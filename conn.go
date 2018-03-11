@@ -76,12 +76,12 @@ func (c *Conn) Transmit(m *Msg) (err error) {
 }
 
 func (c *Conn) Read(p []byte) (n int, err error) {
-	defer func() { logf("called conn.Read, result n=%d, err=%s", n, err) }()
+	defer func() { logf("called conn.Read, result n=%d, err=%v", n, err) }()
 	return c.bio.Read(p)
 }
 
 func (c *Conn) Write(p []byte) (n int, err error) {
-	defer func() { logf("called conn.Write, result n=%d, err=%s", n, err) }()
+	defer func() { logf("called conn.Write: %q\n\tresult n=%d, err=%v", p, n, err) }()
 	return c.bio.Write(p)
 }
 
