@@ -60,6 +60,36 @@ func TestPlan9Version(t *testing.T) {
 	t.Logf("qid is %#v\n", qid)
 }
 
+
+func TestPlan9WalkWrite(t *testing.T) {
+	ckHasPlan9(t)
+	conn, err := Dial("tcp", realPlan9)
+	if err != nil {
+		t.Fatal(err)
+	}
+	max, version, err := conn.Ver()
+	max = max
+	version = version
+	if err != nil {
+		t.Fatal(err)
+	}
+	qid, err := conn.Attach(1, 0xffffffffff, "none", "/tmp")
+	if err != nil {
+		t.Fatal(err)
+	}
+	qid, iounit, err := conn.Create(1, "testglenda4.txt", 0, 0)
+	t.Logf("qid, iounit, err %v %v %v\n", qid, iounit, err)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := make([]byte, iounit)
+	n, err := conn.WriteFid(2, 0, p)
+	t.Logf("n, err, p %v %v %v\n", n, err, p)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestPlan9WalkReadNdb(t *testing.T) {
 	ckHasPlan9(t)
 	conn, err := Dial("tcp", realPlan9)

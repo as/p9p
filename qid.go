@@ -1,11 +1,13 @@
 package p9p
 
-type Qids struct {
-	List []Qid
-}
+type Fid int32
 
 type Qid struct {
 	Type byte
 	Ver  uint32
 	Path uint64
+}
+
+type Qids struct{
+	List []Qid
 }
