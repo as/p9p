@@ -34,6 +34,56 @@ func (m *Msg) String() string {
 	)
 }
 
+type Names struct {
+	List []string
+}
+
+func (m *Msg) writeNames(names ...string) bool {
+	m.writebinary(uint16(len(names)))
+	for i := range names {
+		if !m.writestring(names[i]) {
+			break
+		}
+	}
+	return m.err == nil
+}
+
+func (m *Msg) readQuids(q *[]Qid) bool {
+	var (
+		nn uint16
+		q0 Qid
+	)
+	if !m.readbinary(&nn) {
+		return false
+	}
+
+	for i := uint16(0); i < nn; i++ {
+		if !m.readbinary(&q0) {
+			break
+		}
+		*q = append(*q, q0)
+	}
+	return m.err == nil
+
+}
+
+func (m *Msg) readNames(nm *Names) bool {
+	var (
+		nn, n uint16
+		b     [65536]byte
+	)
+	if !m.readbinary(&nn) {
+		return false
+	}
+	for i := uint16(0); i < nn; i++ {
+		if !m.readbinary(&n) || !m.readbytes(b[:n]) {
+			break
+		}
+		nm.List = append(nm.List, string(b[:n]))
+	}
+	return m.err == nil
+}
+
 func (c *Msg) writeMsg(kind Kind, p []byte) bool {
 	return c.writeHeader(kind) && c.write(p)
 }
@@ -77,6 +127,14 @@ func (c *Msg) readbinary(v interface{}) bool {
 		return false
 	}
 	c.err = binary.Read(c.src, binary.LittleEndian, v)
+	return c.err == nil
+}
+
+func (c *Msg) readbytes(p []byte) bool {
+	if c.err != nil {
+		return false
+	}
+	_, c.err = io.ReadAtLeast(&c.Buffer, p, len(p))
 	return c.err == nil
 }
 
