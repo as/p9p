@@ -53,10 +53,36 @@ func TestPlan9Version(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = conn.Attach(1, 2, "/root", "xxxxxxxxx")
+	qid, err := conn.Attach(1, 0xffffffffff, "none", "/")
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Logf("qid is %#v\n", qid)
+}
+
+func TestPlan9Create(t *testing.T) {
+	ckHasPlan9(t)
+	conn, err := Dial("tcp", realPlan9)
+	if err != nil {
+		t.Fatal(err)
+	}
+	max, version, err := conn.Ver()
+	max = max
+	version = version
+	if err != nil {
+		t.Fatal(err)
+	}
+	qid, err := conn.Attach(1, 0xffffffffff, "none", "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("qid is %#v\n", qid)
+	qid, iounit, err := conn.Create(2, "glend4.txt", 0, 0)
+	t.Logf("qid, iounit, err %v %v %v\n", qid, iounit, err)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 }
 
 func TestPlan9Flush(t *testing.T) {
