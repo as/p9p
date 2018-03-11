@@ -3,7 +3,6 @@ package p9p
 import (
 	"bufio"
 	"errors"
-	"io"
 	"net"
 )
 
@@ -15,8 +14,9 @@ const (
 type Kind byte
 
 const (
-	KTversion, KRversion byte = iota + 100, iota + 101
+	KTversion, KRversion  Kind = iota + 100, iota + 101
 	KTauth, KRauth
+	KTattach, KRattach
 	KTerror, KRerror
 	KTflush, KRflush
 	KTwalk, KRwalk
@@ -45,15 +45,6 @@ func str(in string) s {
 //wire9 Tversion size[4] msg[1] tag[2] msize[4] version[,s]
 //wire9 Rversion size[4] msg[1] tag[2] msize[4] version[,s]
 
-func newConn(conn net.Conn) *Conn {
-	return &Conn{
-		ReadWriter: bufio.NewReadWriter(
-			bufio.NewReaderSize(conn, MaxMsg),
-			bufio.NewWriterSize(conn, MaxMsg),
-		),
-	}
-}
-
 var (
 	ErrNoConn     = errors.New("no connection")
 	ErrBadVersion = errors.New("bad version")
@@ -70,12 +61,31 @@ const (
 )
 
 type Conn struct {
-	*bufio.ReadWriter
-	rwc     io.ReadWriteCloser
-	tmp     []byte
+	txout chan msg
+	netconn net.Conn
+	xxx     *bufio.ReadWriter
 	err     error
 	version string
 	state   State
+}
+
+func (c *Conn) Read(p []byte) (n int, err error) {
+	defer func() { logf("called conn.Read, result n=%d, err=%s", n, err) }()
+	return c.xxx.Read(p)
+}
+
+func (c *Conn) Write(p []byte) (n int, err error) {
+	defer func() { logf("called conn.Write, result n=%d, err=%s", n, err) }()
+	return c.xxx.Write(p)
+}
+func (c *Conn) Flush() (err error) {
+	defer func() { logf("called conn.Flush, result err=%s", err) }()
+	return c.xxx.Flush()
+}
+
+func (c *Conn) Close() (err error) {
+	defer func() { logf("called conn.Close, result err=%s", err) }()
+	return c.netconn.Close()
 }
 
 func Accept(fd net.Listener) (c *Conn, err error) {
@@ -89,47 +99,40 @@ func Accept(fd net.Listener) (c *Conn, err error) {
 		}
 	}()
 
-	c = newConn(conn)
+	c = NewConn(conn)
 	return c, negotiateServer(c, &Tversion{
-		msg:     KTversion,
+		msg:     byte(KTversion),
 		tag:     NOTAG,
 		msize:   MaxMsg,
 		version: str(Version),
 	})
 }
 
-func Dial(netw string, addr string) (*Conn, error) {
+func Dial(netw string, addr string) (c *Conn, err error) {
 	conn, err := net.Dial(netw, addr)
 	if err != nil {
 		return nil, err
 	}
-
-	bio, err := NewConn(conn)
+	c = NewConn(conn)
 	if err != nil {
 		conn.Close()
+		return nil, err
 	}
-
-	return bio, err
+	return c, nil
 }
 
 // NewConn opens a new 9p connection from an existing
 // conn.
-func NewConn(conn net.Conn) (*Conn, error) {
-	c := newConn(conn)
-	rv, err := negotiateClient(c, &Tversion{
-		msg:     KTversion,
-		tag:     NOTAG,
-		msize:   MaxMsg,
-		version: str(Version),
-	})
-	if err != nil {
-		return nil, err
+func NewConn(conn net.Conn) (c *Conn) {
+	defer func(){ go c.run() }()
+	return &Conn{
+		txout: make(chan msg),
+		netconn: conn,
+		xxx: bufio.NewReadWriter(
+			bufio.NewReaderSize(conn, MaxMsg),
+			bufio.NewWriterSize(conn, MaxMsg),
+		),
 	}
-
-	c.state = StEstablished
-	c.version = string(rv.version.data)
-
-	return c, err
 }
 
 //wire9 Tauth size[4] msg[1] tag[2] afid[4] uname[,s] aname[,s]
