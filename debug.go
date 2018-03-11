@@ -9,6 +9,6 @@ var logf = log.Printf
 
 func init() {
 	if debug == 0 {
-		logf = func(s string, i ...interface{}) { return }
+		logf = func(s string, i ...interface{}) {  }
 	}
 }
