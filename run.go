@@ -19,17 +19,18 @@ func (c *Conn) schedule(m *Msg) (ok bool) {
 
 	reply := make(chan *Msg)
 	c.txout <- msg{m, reply}
-	m = <-reply
+	m0 := <-reply
 
-	if m.err == nil {
-		m.self()
+	if m0.err == nil {
+		m0.self()
+		*m = *m0
 	}
-	return m.err == nil
+	return m0.err == nil
 }
 
 func (c *Conn) run() {
 	inflight := make(map[uint16]chan *Msg)
-	ctr := uint16(1)
+	tag := uint16(0xffff)
 	incoming := make(chan Msg)
 	go func() {
 		for {
@@ -46,19 +47,20 @@ func (c *Conn) run() {
 	for {
 		select {
 		case m := <-c.txout:
-			if m.Kind == KTversion{
+			if m.Kind == KTversion {
 				// According to the 9p man pages, a version message
 				// clunks all outstanding fids in flight
 				inflight = make(map[uint16]chan *Msg)
-				
+				tag = 0xffff
 			}
+			m.Header.Tag = tag
 			err = c.Transmit(m.Msg)
 			if err != nil {
 				panic("TODO(as): handle transmit failure")
 			}
 			logf("txoutdone: %#v\n", m.Msg)
 			inflight[m.Tag] = m.reply
-			ctr++
+			tag++
 		case m := <-incoming:
 			repl, ok := inflight[m.Tag]
 			if !ok {

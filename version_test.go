@@ -101,11 +101,13 @@ func TestVersionPlan9(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	max, version, err := conn.Ver()
-	max = max
-	version = version
-	if err != nil {
-		t.Fatal(err)
+	for i := 0; i < 2; i++ {
+		max, version, err := conn.Ver()
+		max = max
+		version = version
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 	err = conn.Attach(1, 2, "/root", "xxxxxxxxx")
 	if err != nil {

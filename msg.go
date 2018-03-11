@@ -33,15 +33,14 @@ type Msg struct {
 	err error
 }
 
-func (c *Msg) writeMsg(kind Kind, tag uint16, p []byte) bool {
-	return c.writeHeader(kind, tag) && c.write(p)
+func (c *Msg) writeMsg(kind Kind, p []byte) bool {
+	return c.writeHeader(kind) && c.write(p)
 }
 
-func (c *Msg) writeHeader(kind Kind, tag uint16) bool {
+func (c *Msg) writeHeader(kind Kind) bool {
 	if c.err != nil {
 		return false
 	}
-	c.Header.Tag = tag
 	c.Header.Kind = kind
 
 	return true
@@ -53,10 +52,9 @@ func (c *Msg) self() bool {
 	return true
 }
 
-func (c *Msg) size() uint32{
-	return 4+1+2+uint32(c.Buffer.Len())
+func (c *Msg) size() uint32 {
+	return 4 + 1 + 2 + uint32(c.Buffer.Len())
 }
-
 
 func (c *Msg) readMsg(kind Kind) bool {
 	return c.readHeader() && c.read(c.Header.Size-4-1-2)

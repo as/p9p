@@ -22,34 +22,36 @@ func (c *Conn) Version() (string, error) {
 }
 
 func (c *Conn) Ver() (max uint32, version string, err error) {
+	defer logf("Ver: %v %s %s", err)
 	m := &Msg{src: c}
-	if !m.writeHeader(KTversion, 0xffff) || !m.writebinary(uint32(0xffff)) || !m.writestring("9P2000") {
+	if !m.writeHeader(KTversion) || !m.writebinary(uint32(0xffff)) || !m.writestring("9P2000") {
 		return max, version, m.err
 	}
 
 	if !c.schedule(m) {
+		logf("!c.schedule: %s\n", m.err)
 		return max, version, m.err
 	}
 
 	m.readbinary(&max)
+	logf("c.readbinary: %s\n", m.err)
 	m.readstring()
+	logf("c.readbinary: %s\n", m.err)
 
 	// TODO(as): negotiate version by comparing client and server, choose smallest value
 	c.version = m.String()
 	c.state = StEstablished
 	return max, c.version, m.err
-
 }
 
 func (c *Conn) Attach(fid int, afid int, uname, aname string) error {
 	m := &Msg{src: c}
-	m.writeHeader(KTattach, 1)
+	m.writeHeader(KTattach)
 	m.writebinary(uint16(fid))
 	m.writebinary(uint16(afid))
 	m.writestring(uname)
 	m.writestring(aname)
 
-	logf("attach: %v %s %s", m.Header, m.String(), m.err)
 	if !c.schedule(m) {
 		return m.err
 	}
