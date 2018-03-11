@@ -21,24 +21,6 @@ func (c *Conn) Version() (string, error) {
 	return c.version, nil
 }
 
-func (c *Conn) schedule(m *Msg) (ok bool) {
-	logf("schedule: %#v\n", m)
-	defer func() { logf("de schedule: %#v\n", m) }()
-	if m.err != nil {
-		return false
-	}
-	reply := make(chan *Msg)
-	logf("c.txout<-msg{m, reply}\n")
-	c.txout <- msg{m, reply}
-	logf("done! c.txout<-msg{m, reply}\n")
-	m = <-reply
-	logf("done!! c.txout<-msg{m, reply}\n")
-	if m.err == nil {
-		m.self()
-	}
-	return m.err == nil
-}
-
 func (c *Conn) Ver() (max uint32, version string, err error) {
 	m := &Msg{src: c}
 	if !m.writeHeader(KTversion, 0xffff) || !m.writebinary(uint32(0xffff)) || !m.writestring("9P2000") {

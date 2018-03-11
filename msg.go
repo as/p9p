@@ -37,10 +37,6 @@ func (c *Msg) writeMsg(kind Kind, tag uint16, p []byte) bool {
 	return c.writeHeader(kind, tag) && c.write(p)
 }
 
-func (c *Msg) readMsg(kind Kind) bool {
-	return c.readHeader() && c.read(c.Header.Size-4-1-2)
-}
-
 func (c *Msg) writeHeader(kind Kind, tag uint16) bool {
 	if c.err != nil {
 		return false
@@ -48,10 +44,7 @@ func (c *Msg) writeHeader(kind Kind, tag uint16) bool {
 	c.Header.Tag = tag
 	c.Header.Kind = kind
 
-	return c.writebinary(struct {
-		Kind Kind
-		Tag  uint16
-	}{kind, uint16(tag)})
+	return true
 }
 
 func (c *Msg) self() bool {
@@ -60,22 +53,13 @@ func (c *Msg) self() bool {
 	return true
 }
 
-func (c *Msg) Transmit(w io.Writer) error {
-	c.err = binary.Write(w, binary.LittleEndian, 4+uint32(c.Buffer.Len()))
-	if c.err != nil {
-		return c.err
-	}
-	_, c.err = c.Buffer.WriteTo(w)
-	if c.err != nil {
-		return c.err
-	}
-	type Flusher interface {
-		Flush() error
-	}
-	if f, ok := w.(Flusher); ok {
-		c.err = f.Flush()
-	}
-	return c.err
+func (c *Msg) size() uint32{
+	return 4+1+2+uint32(c.Buffer.Len())
+}
+
+
+func (c *Msg) readMsg(kind Kind) bool {
+	return c.readHeader() && c.read(c.Header.Size-4-1-2)
 }
 
 func (c *Msg) readHeader() bool {

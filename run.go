@@ -10,6 +10,23 @@ type msg struct {
 	reply chan *Msg
 }
 
+func (c *Conn) schedule(m *Msg) (ok bool) {
+	logf("schedule: %#v\n", m)
+	defer func() { logf("de schedule: %#v\n", m) }()
+	if m.err != nil {
+		return false
+	}
+
+	reply := make(chan *Msg)
+	c.txout <- msg{m, reply}
+	m = <-reply
+
+	if m.err == nil {
+		m.self()
+	}
+	return m.err == nil
+}
+
 func (c *Conn) run() {
 	inflight := make(map[uint16]chan *Msg)
 	ctr := uint16(1)
@@ -25,10 +42,18 @@ func (c *Conn) run() {
 			incoming <- m
 		}
 	}()
+	var err error
 	for {
 		select {
 		case m := <-c.txout:
-			if err := m.Transmit(c); err != nil {
+			if m.Kind == KTversion{
+				// According to the 9p man pages, a version message
+				// clunks all outstanding fids in flight
+				inflight = make(map[uint16]chan *Msg)
+				
+			}
+			err = c.Transmit(m.Msg)
+			if err != nil {
 				panic("TODO(as): handle transmit failure")
 			}
 			logf("txoutdone: %#v\n", m.Msg)
