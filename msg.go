@@ -77,13 +77,6 @@ func (c *Msg) readHeader() bool {
 		return false
 	}
 
-	if c.Header.Kind == KRerror {
-		c.err = ProtocolError{}
-		c.readstring()
-		c.err = fmt.Errorf("remote: %q", c.Buffer.Bytes())
-		return false
-	}
-
 	return true
 }
 
@@ -95,19 +88,24 @@ func (c *Msg) readbinary(v interface{}) bool {
 	return c.err == nil
 }
 
-func (c *Msg) writebinary(v interface{}) bool {
-	if c.err != nil {
-		return false
-	}
-	c.err = binary.Write(&c.Buffer, binary.LittleEndian, v)
-	return c.err == nil
-}
-
 func (c *Msg) read(size uint32) bool {
 	if c.err != nil {
 		return false
 	}
 	_, c.err = io.Copy(&(c.Buffer), io.LimitReader(c.src, int64(size)))
+	return c.err == nil
+}
+
+func (c *Msg) readstring() bool {
+	var n uint16
+	return c.readbinary(&n) && c.read(uint32(n))
+}
+
+func (c *Msg) writebinary(v interface{}) bool {
+	if c.err != nil {
+		return false
+	}
+	c.err = binary.Write(&c.Buffer, binary.LittleEndian, v)
 	return c.err == nil
 }
 
@@ -118,11 +116,6 @@ func (c *Msg) write(p []byte) bool {
 
 	_, err := c.Buffer.Write(p)
 	return err == nil
-}
-
-func (c *Msg) readstring() bool {
-	var n uint16
-	return c.readbinary(&n) && c.read(uint32(n))
 }
 
 func (c *Msg) writestring(s string) bool {

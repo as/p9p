@@ -14,7 +14,6 @@ func (c *Conn) Flush(oldtag uint) (err error) {
 
 	x := uint16(0xffff)
 	m.readbinary(&x)
-	logf("c.readbinary: %d %s\n", x, m.err)
 
 	return m.err
 }
