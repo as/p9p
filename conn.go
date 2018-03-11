@@ -72,7 +72,7 @@ func (c *Conn) Transmit(m *Msg) (err error) {
 		return c.err
 	}
 
-	return c.Flush()
+	return c.bio.Flush()
 }
 
 func (c *Conn) Read(p []byte) (n int, err error) {
@@ -83,10 +83,6 @@ func (c *Conn) Read(p []byte) (n int, err error) {
 func (c *Conn) Write(p []byte) (n int, err error) {
 	defer func() { logf("called conn.Write, result n=%d, err=%s", n, err) }()
 	return c.bio.Write(p)
-}
-func (c *Conn) Flush() (err error) {
-	defer func() { logf("called conn.Flush, result err=%s", err) }()
-	return c.bio.Flush()
 }
 
 func (c *Conn) close(cleanup bool) (err error) {

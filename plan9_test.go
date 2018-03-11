@@ -59,6 +59,23 @@ func TestPlan9Version(t *testing.T) {
 	}
 }
 
+func TestPlan9Flush(t *testing.T) {
+	ckHasPlan9(t)
+	conn, err := Dial("tcp", realPlan9)
+	if err != nil {
+		t.Fatal(err)
+	}
+	iounit, version, err := conn.Ver()
+	t.Logf("got iounit=%d version=%q\n", iounit, version)
+	if err != nil {
+		t.Fatalf("error: %s\n", err)
+	}
+	err = conn.Flush(0xffff)
+	if err != nil {
+		t.Fatalf("error: %s\n", err)
+	}
+}
+
 func TestPlan9Error(t *testing.T) {
 	ckHasPlan9(t)
 	conn, err := Dial("tcp", realPlan9)

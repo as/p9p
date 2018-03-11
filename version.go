@@ -62,56 +62,6 @@ func (c *Conn) Attach(fid int, afid int, uname, aname string) error {
 	return m.err
 }
 
-func negotiateClient(c *Conn, tv *Tversion) (*Rversion, error) {
-	tv.size = uint32(4 + 1 + 2 + 4 + 2 + len(tv.version.data))
-
-	logf("open: sending %#v\n", tv)
-	if err := tv.WriteBinary(c); err != nil {
-		logf("open: err: %s\n", err)
-		return nil, err
-	}
-
-	if err := c.Flush(); err != nil {
-		return nil, err
-	}
-
-	rv := Rversion{}
-	if err := rv.ReadBinary(c); err != nil {
-		return nil, err
-	}
-	logf("open: recv %#v\n", rv)
-	return &rv, nil
-}
-
-func negotiateServer(c *Conn, tv *Tversion) error {
-	rv := Rversion{}
-	if err := rv.ReadBinary(c); err != nil {
-		return err
-	}
-	logf("accept: got %#v\n", tv)
-
-	if !supported(string(tv.version.data)) {
-		return ErrBadVersion
-	}
-	if tv.msize != rv.msize {
-		tv.msize = min(rv.msize, tv.msize)
-	}
-	if tv.msize <= 0 {
-		return ErrBadIOSize
-	}
-
-	tv.size = uint32(4 + 1 + 2 + 4 + 2 + len(tv.version.data))
-	if err := tv.WriteBinary(c); err != nil {
-		logf("open: err: %s\n", err)
-		return err
-	}
-	if err := c.Flush(); err != nil {
-		return err
-	}
-	c.state = StEstablished
-	c.version = string(rv.version.data)
-	return nil
-}
 
 func supported(ver string) bool {
 	return ver == "9p2000"

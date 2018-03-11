@@ -81,12 +81,13 @@ func Accept(fd net.Listener) (c *Conn, err error) {
 	}()
 
 	c = NewConn(conn, nil)
-	return c, negotiateServer(c, &Tversion{
-		msg:     byte(KTversion),
-		tag:     NOTAG,
-		msize:   MaxMsg,
-		version: str(Version),
-	})
+	panic("gutted")
+//	return c, negotiateServer(c, &Tversion{
+//		msg:     byte(KTversion),
+//		tag:     NOTAG,
+//		msize:   MaxMsg,
+//		version: str(Version),
+//	})
 }
 
 func Dial(netw string, addr string) (c *Conn, err error) {
