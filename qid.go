@@ -8,6 +8,6 @@ type Qid struct {
 	Path uint64
 }
 
-type Qids struct{
+type Qids struct {
 	List []Qid
 }

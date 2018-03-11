@@ -38,41 +38,29 @@ func ckHasPlan9(t *testing.T) {
 
 }
 
+func TestPlan9Version(t *testing.T) {
+	testPlan9Version(t)
+}
 // The server should run the equivalent of
 //	aux/listen1 -t -v tcp!*!808 exportfs -r /
-//
-func TestPlan9Version(t *testing.T) {
+func testPlan9Version(t *testing.T) *Conn{
+	t.Helper()
 	ckHasPlan9(t)
 	conn, err := Dial("tcp", realPlan9)
 	if err != nil {
 		t.Fatal(err)
 	}
-	max, version, err := conn.Ver()
-	max = max
-	version = version
+	iounit, version, err := conn.Ver()
+	t.Logf("iounit, version: %v, %v\n", iounit, version)
 	if err != nil {
 		t.Fatal(err)
 	}
-	qid, err := conn.Attach(1, 0xffffffffff, "none", "/")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Logf("qid is %#v\n", qid)
+	return conn
 }
 
 
 func TestPlan9WalkWrite(t *testing.T) {
-	ckHasPlan9(t)
-	conn, err := Dial("tcp", realPlan9)
-	if err != nil {
-		t.Fatal(err)
-	}
-	max, version, err := conn.Ver()
-	max = max
-	version = version
-	if err != nil {
-		t.Fatal(err)
-	}
+	conn:= testPlan9Version(t)
 	qid, err := conn.Attach(1, 0xffffffffff, "none", "/tmp")
 	if err != nil {
 		t.Fatal(err)
@@ -91,17 +79,7 @@ func TestPlan9WalkWrite(t *testing.T) {
 }
 
 func TestPlan9WalkReadNdb(t *testing.T) {
-	ckHasPlan9(t)
-	conn, err := Dial("tcp", realPlan9)
-	if err != nil {
-		t.Fatal(err)
-	}
-	max, version, err := conn.Ver()
-	max = max
-	version = version
-	if err != nil {
-		t.Fatal(err)
-	}
+	conn:= testPlan9Version(t)
 	qid, err := conn.Attach(1, 0xffffffffff, "none", "/")
 	if err != nil {
 		t.Fatal(err)
@@ -126,17 +104,7 @@ func TestPlan9WalkReadNdb(t *testing.T) {
 }
 
 func TestPlan9Create(t *testing.T) {
-	ckHasPlan9(t)
-	conn, err := Dial("tcp", realPlan9)
-	if err != nil {
-		t.Fatal(err)
-	}
-	max, version, err := conn.Ver()
-	max = max
-	version = version
-	if err != nil {
-		t.Fatal(err)
-	}
+	conn:= testPlan9Version(t)
 	qid, err := conn.Attach(1, 0xffffffffff, "none", "/")
 	if err != nil {
 		t.Fatal(err)
@@ -150,34 +118,16 @@ func TestPlan9Create(t *testing.T) {
 }
 
 func TestPlan9Flush(t *testing.T) {
-	ckHasPlan9(t)
-	conn, err := Dial("tcp", realPlan9)
-	if err != nil {
-		t.Fatal(err)
-	}
-	iounit, version, err := conn.Ver()
-	t.Logf("got iounit=%d version=%q\n", iounit, version)
-	if err != nil {
-		t.Fatalf("error: %s\n", err)
-	}
-	err = conn.Flush(0xffff)
+	conn:= testPlan9Version(t)
+	err := conn.Flush(0xffff)
 	if err != nil {
 		t.Fatalf("error: %s\n", err)
 	}
 }
 
 func TestPlan9Error(t *testing.T) {
-	ckHasPlan9(t)
-	conn, err := Dial("tcp", realPlan9)
-	if err != nil {
-		t.Fatal(err)
-	}
-	iounit, version, err := conn.Ver()
-	t.Logf("got iounit=%d version=%q\n", iounit, version)
-	if err != nil {
-		t.Fatalf("error: %s\n", err)
-	}
-	err = conn.Error("because")
+	conn:= testPlan9Version(t)
+	err := conn.Error("because")
 	err = conn.Error("because")
 	err = conn.Error("because")
 	err = conn.Error("because")
