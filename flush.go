@@ -3,7 +3,7 @@ package p9p
 func (c *Conn) Flush(oldtag uint) (err error) {
 	defer logf("Flush: %s", err)
 	m := &Msg{src: c}
-	if !m.writeHeader(KTflush) || !m.writebinary(uint16(oldtag)){
+	if !m.writeHeader(KTflush) || !m.writebinary(uint16(oldtag)) {
 		return m.err
 	}
 

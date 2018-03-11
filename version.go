@@ -62,7 +62,6 @@ func (c *Conn) Attach(fid int, afid int, uname, aname string) error {
 	return m.err
 }
 
-
 func supported(ver string) bool {
 	return ver == "9p2000"
 }
