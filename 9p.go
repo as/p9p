@@ -1,14 +1,8 @@
 package p9p
 
 import (
-	"bufio"
 	"errors"
 	"net"
-)
-
-const (
-	Version = "9P2000"
-	MaxMsg  = 65535
 )
 
 type Kind byte
@@ -60,34 +54,6 @@ const (
 	StError
 )
 
-type Conn struct {
-	txout   chan msg
-	netconn net.Conn
-	bio     *bufio.ReadWriter
-	err     error
-	version string
-	state   State
-}
-
-func (c *Conn) Read(p []byte) (n int, err error) {
-	defer func() { logf("called conn.Read, result n=%d, err=%s", n, err) }()
-	return c.bio.Read(p)
-}
-
-func (c *Conn) Write(p []byte) (n int, err error) {
-	defer func() { logf("called conn.Write, result n=%d, err=%s", n, err) }()
-	return c.bio.Write(p)
-}
-func (c *Conn) Flush() (err error) {
-	defer func() { logf("called conn.Flush, result err=%s", err) }()
-	return c.bio.Flush()
-}
-
-func (c *Conn) Close() (err error) {
-	defer func() { logf("called conn.Close, result err=%s", err) }()
-	return c.netconn.Close()
-}
-
 func Accept(fd net.Listener) (c *Conn, err error) {
 	conn, err := fd.Accept()
 	if err != nil {
@@ -99,7 +65,7 @@ func Accept(fd net.Listener) (c *Conn, err error) {
 		}
 	}()
 
-	c = NewConn(conn)
+	c = NewConn(conn, nil)
 	return c, negotiateServer(c, &Tversion{
 		msg:     byte(KTversion),
 		tag:     NOTAG,
@@ -113,26 +79,12 @@ func Dial(netw string, addr string) (c *Conn, err error) {
 	if err != nil {
 		return nil, err
 	}
-	c = NewConn(conn)
+	c = NewConn(conn, nil)
 	if err != nil {
 		conn.Close()
 		return nil, err
 	}
 	return c, nil
-}
-
-// NewConn opens a new 9p connection from an existing
-// conn.
-func NewConn(conn net.Conn) (c *Conn) {
-	defer func() { go c.run() }()
-	return &Conn{
-		txout:   make(chan msg),
-		netconn: conn,
-		bio: bufio.NewReadWriter(
-			bufio.NewReaderSize(conn, MaxMsg),
-			bufio.NewWriterSize(conn, MaxMsg),
-		),
-	}
 }
 
 //wire9 Tauth size[4] msg[1] tag[2] afid[4] uname[,s] aname[,s]
