@@ -40,13 +40,6 @@ const (
 
 const NOTAG = ^uint16(0)
 
-func str(in string) s {
-	return s{
-		n:    uint16(len(in)),
-		data: []byte(in),
-	}
-}
-
 //wire9 qid data[13]
 //wire9 s n[2] data[n]
 //wire9 Hdr size[4] msg[1]
