@@ -1,5 +1,7 @@
 package p9p
 
+import "io"
+
 func (c *Conn) Remove(fid Fid) (err error) {
 	defer func() { logf("Remove: %v", err) }()
 	m := &Msg{src: c}
@@ -46,7 +48,9 @@ func (c *Conn) ReadFid(fid Fid, offset int64, p []byte) (n int, err error) {
 	}
 
 	if !c.schedule(m) || !m.readbinary(&nn) || !m.readbytes(p) {
-		return n, m.err
+		if m.err == io.ErrUnexpectedEOF {
+			return n, m.err
+		}
 	}
 
 	return int(nn), m.err

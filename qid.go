@@ -1,5 +1,9 @@
 package p9p
 
+const (
+	NoFid = ^Fid(0)
+)
+
 type Fid uint32
 
 type Qid struct {

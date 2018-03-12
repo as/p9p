@@ -8,11 +8,10 @@ func (c *Conn) Flush(oldtag uint) (err error) {
 	}
 
 	if !c.schedule(m) {
-		logf("!c.schedule: %s\n", m.err)
 		return m.err
 	}
 
-	x := uint16(0xffff)
+	x := uint16(0)
 	m.readbinary(&x)
 
 	return m.err

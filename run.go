@@ -1,5 +1,7 @@
 package p9p
 
+import "io"
+
 type entry struct {
 	tag    uint16
 	expect Kind
@@ -23,7 +25,7 @@ func (c *Conn) schedule(m *Msg) (ok bool) {
 	if m0.Header.Kind == KRerror {
 		m0.self()
 		m0.readstring()
-		m0.err = ProtocolError{string(m0.Buffer.Bytes())}
+		m0.err = ProtocolError{m0.Buffer.String()}
 	}
 	if m0.err == nil {
 		m0.self()
@@ -64,6 +66,9 @@ func (c *Conn) run() {
 		case <-c.done:
 			return
 		case err := <-fail:
+			if err == io.EOF {
+				err = nil
+			}
 			if err != nil {
 				logf("conn: run: got fatal error: %s", err)
 			}

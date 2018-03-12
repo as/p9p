@@ -2,6 +2,7 @@ package p9p
 
 import (
 	"context"
+	"io"
 	"net"
 	"testing"
 	"time"
@@ -61,7 +62,7 @@ func testPlan9Version(t *testing.T) *Conn {
 
 func TestPlan9WalkWrite(t *testing.T) {
 	conn := testPlan9Version(t)
-	qid, err := conn.Attach(1, 0xffffffff, "none", "/tmp")
+	qid, err := conn.Attach(1, NoFid, "none", "/tmp")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +81,7 @@ func TestPlan9WalkWrite(t *testing.T) {
 
 func TestPlan9WalkReadNdb(t *testing.T) {
 	conn := testPlan9Version(t)
-	qid, err := conn.Attach(1, 0xffffffff, "none", "/")
+	qid, err := conn.Attach(1, NoFid, "none", "/")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,14 +99,14 @@ func TestPlan9WalkReadNdb(t *testing.T) {
 	p := make([]byte, iounit)
 	n, err := conn.ReadFid(2, 0, p)
 	t.Logf("n, err, p %v %v %v\n", n, err, p)
-	if err != nil {
+	if err != io.EOF && err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestPlan9Create(t *testing.T) {
 	conn := testPlan9Version(t)
-	qid, err := conn.Attach(1, 0xffffffff, "none", "/")
+	qid, err := conn.Attach(1, NoFid, "none", "/")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -126,11 +127,10 @@ func TestPlan9Flush(t *testing.T) {
 }
 
 func TestPlan9Error(t *testing.T) {
+	t.Skip("client doesnt send errors to server")
 	conn := testPlan9Version(t)
 	err := conn.Error("because")
-	err = conn.Error("because")
-	err = conn.Error("because")
-	err = conn.Error("because")
-	t.Fatalf("error %s", err)
-
+	if err != nil {
+		t.Fatalf("error %s", err)
+	}
 }
