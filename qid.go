@@ -1,6 +1,6 @@
 package p9p
 
-type Fid int32
+type Fid uint32
 
 type Qid struct {
 	Type byte

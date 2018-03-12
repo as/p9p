@@ -44,11 +44,11 @@ func (c *Conn) Ver() (max uint32, version string, err error) {
 	return max, c.version, m.err
 }
 
-func (c *Conn) Attach(fid int, afid int, uname, aname string) (q Qid, err error) {
+func (c *Conn) Attach(fid, afid Fid, uname, aname string) (q Qid, err error) {
 	m := &Msg{src: c}
 	m.writeHeader(KTattach)
-	m.writebinary(uint32(fid))
-	m.writebinary(uint32(afid))
+	m.writebinary(fid)
+	m.writebinary(afid)
 	m.writestring(uname)
 	m.writestring(aname)
 

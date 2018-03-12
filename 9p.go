@@ -40,13 +40,6 @@ const (
 
 const NOTAG = ^uint16(0)
 
-//wire9 qid data[13]
-//wire9 s n[2] data[n]
-//wire9 Hdr size[4] msg[1]
-
-//wire9 Tversion size[4] msg[1] tag[2] msize[4] version[,s]
-//wire9 Rversion size[4] msg[1] tag[2] msize[4] version[,s]
-
 var (
 	ErrNoConn     = errors.New("no connection")
 	ErrBadVersion = errors.New("bad version")
@@ -96,6 +89,11 @@ func Dial(netw string, addr string) (c *Conn, err error) {
 	return c, nil
 }
 
+//wire9 qid data[13]
+//wire9 s n[2] data[n]
+//wire9 Hdr size[4] msg[1]
+//wire9 Tversion size[4] msg[1] tag[2] msize[4] version[,s]
+//wire9 Rversion size[4] msg[1] tag[2] msize[4] version[,s]
 //wire9 Tauth size[4] msg[1] tag[2] afid[4] uname[,s] aname[,s]
 //wire9 Rauth size[4] msg[1] tag[2] aqid[13]
 //wire9 Rerror size[4] msg[1] tag[2] ename[,s]

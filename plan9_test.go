@@ -61,7 +61,7 @@ func testPlan9Version(t *testing.T) *Conn {
 
 func TestPlan9WalkWrite(t *testing.T) {
 	conn := testPlan9Version(t)
-	qid, err := conn.Attach(1, 0xffffffffff, "none", "/tmp")
+	qid, err := conn.Attach(1, 0xffffffff, "none", "/tmp")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +80,7 @@ func TestPlan9WalkWrite(t *testing.T) {
 
 func TestPlan9WalkReadNdb(t *testing.T) {
 	conn := testPlan9Version(t)
-	qid, err := conn.Attach(1, 0xffffffffff, "none", "/")
+	qid, err := conn.Attach(1, 0xffffffff, "none", "/")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,7 +105,7 @@ func TestPlan9WalkReadNdb(t *testing.T) {
 
 func TestPlan9Create(t *testing.T) {
 	conn := testPlan9Version(t)
-	qid, err := conn.Attach(1, 0xffffffffff, "none", "/")
+	qid, err := conn.Attach(1, 0xffffffff, "none", "/")
 	if err != nil {
 		t.Fatal(err)
 	}

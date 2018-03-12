@@ -1,27 +1,27 @@
 package p9p
 
-func (c *Conn) Remove(fid int) (err error) {
+func (c *Conn) Remove(fid Fid) (err error) {
 	defer func() { logf("Remove: %v", err) }()
 	m := &Msg{src: c}
-	if !m.writeHeader(KTremove) || !m.writebinary(uint32(fid)) || !c.schedule(m) {
+	if !m.writeHeader(KTremove) || !m.writebinary(fid) || !c.schedule(m) {
 		return m.err
 	}
 	return nil
 }
 
-func (c *Conn) Clunk(fid int) (err error) {
+func (c *Conn) Clunk(fid Fid) (err error) {
 	defer func() { logf("Clunk: %v", err) }()
 	m := &Msg{src: c}
-	if !m.writeHeader(KTclunk) || !m.writebinary(uint32(fid)) || !c.schedule(m) {
+	if !m.writeHeader(KTclunk) || !m.writebinary(fid) || !c.schedule(m) {
 		return m.err
 	}
 	return nil
 }
 
-func (c *Conn) Walk(fid, newfid int, names ...string) (q []Qid, err error) {
+func (c *Conn) Walk(fid, newfid Fid, names ...string) (q []Qid, err error) {
 	defer func() { logf("Walk: %v %v %v", fid, newfid, names) }()
 	m := &Msg{src: c}
-	if !m.writeHeader(KTwalk) || !m.writebinary(uint32(fid)) || !m.writebinary(uint32(newfid)) || !m.writeNames(names...) {
+	if !m.writeHeader(KTwalk) || !m.writebinary(fid) || !m.writebinary(newfid) || !m.writeNames(names...) {
 		return q, m.err
 	}
 
@@ -33,15 +33,15 @@ func (c *Conn) Walk(fid, newfid int, names ...string) (q []Qid, err error) {
 	return q, m.err
 }
 
-func (c *Conn) ReadFid(fid int, offset int64, p []byte) (n int, err error) {
+func (c *Conn) ReadFid(fid Fid, offset int64, p []byte) (n int, err error) {
 	var nn int32
 	defer func() { logf("Read: %v %v %v", fid, offset, p) }()
 	m := &Msg{src: c}
 	if !m.writeHeader(KTread) || !m.writebinary(&struct {
-		Fid int32
+		Fid Fid
 		Ofs int64
 		N   int32
-	}{int32(fid), offset, int32(len(p))}) {
+	}{fid, offset, int32(len(p))}) {
 		return n, m.err
 	}
 
@@ -52,15 +52,15 @@ func (c *Conn) ReadFid(fid int, offset int64, p []byte) (n int, err error) {
 	return int(nn), m.err
 }
 
-func (c *Conn) WriteFid(fid int, offset int64, p []byte) (n int, err error) {
+func (c *Conn) WriteFid(fid Fid, offset int64, p []byte) (n int, err error) {
 	var nn int32
 	defer func() { logf("Write: %v %v %v", fid, offset, p) }()
 	m := &Msg{src: c}
 	if !m.writeHeader(KTwrite) || !m.writebinary(&struct {
-		Fid int32
+		Fid Fid
 		Ofs int64
 		N   int32
-	}{int32(fid), offset, int32(len(p))}) {
+	}{fid, offset, int32(len(p))}) {
 		return n, m.err
 	}
 
